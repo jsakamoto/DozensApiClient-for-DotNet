@@ -1,17 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
-using System.Web.Script.Serialization;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Web.Script.Serialization;
 
 namespace DozensAPI
 {
     public class Dozens
     {
         private JavaScriptSerializer _Serializer;
+
+        private IAPIEndPoint _APIEndPoint;
 
         private string _DozensUserId;
         
@@ -21,12 +21,18 @@ namespace DozensAPI
 
         public string BaseURL { get; set; }
 
+        /// <summary>
+        /// <see cref="Dozens"/> クラスの新しいインスタンスを初期化します。
+        /// </summary>
+        /// <param name="dozensUserId">Dozensに開設したアカウントのIDを指定します。</param>
+        /// <param name="apiKey">そのアカウントの API KEY を指定します。API KEY は Doznes の Web サイトにログインして、プロフィールのページ(https://dozens.jp/profile)から入手できます。</param>
         public Dozens(string dozensUserId, string apiKey)
         {
             this._DozensUserId = dozensUserId;
             this._APIKey = apiKey;
             this.BaseURL = "http://dozens.jp/api";
             this._Serializer = new JavaScriptSerializer();
+            this._APIEndPoint = new DefaultAPIEndPoint();
         }
 
         [DebuggerDisplay("{auth_token}")]
@@ -37,13 +43,16 @@ namespace DozensAPI
 
         private void Auth()
         {
-            this.Token = null;
-    
-            var webClient = GetAPIEndPoint();
-            var resultJson = webClient.DownloadString(this.BaseURL + "/authorize.json");
-            var result = this._Serializer.Deserialize<AuthResult>(resultJson);
-            
-            this.Token = result.auth_token;
+            lock (this._APIEndPoint)
+            {
+                this.Token = null;
+
+                var apiEndPoint = GetAPIEndPoint();
+                var resultJson = apiEndPoint.DownloadString(this.BaseURL + "/authorize.json");
+                var result = this._Serializer.Deserialize<AuthResult>(resultJson);
+
+                this.Token = result.auth_token;
+            }
         }
 
         internal class ErrorResult
@@ -54,41 +63,45 @@ namespace DozensAPI
 
         protected T CallAPI<T>(string actionName, object target = null, object param = null, string verb = null)
         {
-            if (string.IsNullOrEmpty(this.Token)) Auth();
-            
-            var url = this.BaseURL + "/" + actionName +
-                (target != null ? "/" + target.ToString() : "") +
-                ".json";
-
-            var paramJson = (param != null) ? _Serializer.Serialize(param) : null;
-
-            var webClient = GetAPIEndPoint();
-            try
+            lock (this._APIEndPoint)
             {
-                var resultJson = (param != null || verb != null) ?
-                    webClient.UploadString(url, verb ?? "POST", paramJson ?? "") :
-                    webClient.DownloadString(url);
+                if (string.IsNullOrEmpty(this.Token)) Auth();
 
-                var result = this._Serializer.Deserialize<T>(resultJson);
-                return result;
-            }
-            catch (WebException e)
-            {
-                using (var responseBody = new StreamReader(e.Response.GetResponseStream()))
+                var url = this.BaseURL + "/" + actionName +
+                    (target != null ? "/" + target.ToString() : "") +
+                    ".json";
+
+                var paramJson = (param != null) ? _Serializer.Serialize(param) : null;
+
+                var apiEndPoint = GetAPIEndPoint();
+                try
                 {
-                    var body = responseBody.ReadToEnd();
-                    var errResult = string.IsNullOrWhiteSpace(body) ? 
-                        new ErrorResult() :
-                        this._Serializer.Deserialize<ErrorResult>(body);
-                    throw new DozensException(errResult.Code, errResult.Message, e);
+                    var resultJson = (param != null || verb != null) ?
+                        apiEndPoint.UploadString(url, verb ?? "POST", paramJson ?? "") :
+                        apiEndPoint.DownloadString(url);
+
+                    var result = this._Serializer.Deserialize<T>(resultJson);
+                    return result;
+                }
+                catch (WebException e)
+                {
+                    using (var responseBody = new StreamReader(e.Response.GetResponseStream()))
+                    {
+                        var body = responseBody.ReadToEnd();
+                        var errResult = string.IsNullOrWhiteSpace(body) ?
+                            new ErrorResult() :
+                            this._Serializer.Deserialize<ErrorResult>(body);
+                        throw new DozensException(errResult.Code, errResult.Message, e);
+                    }
                 }
             }
         }
 
-        private WebClient GetAPIEndPoint()
+        private IAPIEndPoint GetAPIEndPoint()
         {
-            var client = new WebClient();
+            var client = this._APIEndPoint;
             var baseUrl = new Uri(this.BaseURL);
+            client.Headers.Clear();
             client.Headers.Add(HttpRequestHeader.Host, baseUrl.Host);
             client.Headers.Add(HttpRequestHeader.Accept, "application/json");
             client.Headers.Add(HttpRequestHeader.ContentType, "application/json");

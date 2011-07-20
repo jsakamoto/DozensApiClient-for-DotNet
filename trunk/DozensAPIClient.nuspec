@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>DozensAPIClient</id>
+    <version>1.0.0</version>
+    <title>Dozens API Client</title>
+    <authors>J.Sakamoto</authors>
+    <owners>J.Sakamoto</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+      This library provide you to easily access way to API of "Dozens" DNS service (ex.Create/Get/Udate/Edit DNS zones or records).
+      クラウド時代に対応したDNSサービス "Dozens"(http://dozens.jp) の REST API にアクセスして、ゾーン又はレコードの追加/取得/変更/削除を行うことのできる、.NET 言語用のクラスライブラリです。
+    </description>
+    <language>ja-JP</language>
+    <licenseUrl>http://dozensapiclient.codeplex.com/license</licenseUrl>
+    <projectUrl>http://dozensapiclient.codeplex.com/</projectUrl>
+    <tags>DNS Dozens</tags>
+    <!--
+    <iconUrl></iconUrl>
+    -->
+  </metadata>
+  <files>
+    <file src="bin\Release\Dozens.dll" target="lib"/>
+  </files>
+</package>
