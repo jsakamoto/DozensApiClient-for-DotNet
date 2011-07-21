@@ -15,11 +15,10 @@
     <licenseUrl>http://dozensapiclient.codeplex.com/license</licenseUrl>
     <projectUrl>http://dozensapiclient.codeplex.com/</projectUrl>
     <tags>DNS Dozens</tags>
-    <!--
-    <iconUrl></iconUrl>
-    -->
+    <iconUrl>http://nuget.org/Media/Default/Packages/DozensAPIClient/1.0.0/doz_bigger.png</iconUrl>
   </metadata>
   <files>
     <file src="bin\Release\Dozens.dll" target="lib"/>
+    <file src="bin\Release\Dozens.xml" target="lib"/>
   </files>
 </package>

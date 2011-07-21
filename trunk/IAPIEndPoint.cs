@@ -6,6 +6,9 @@ using System.Net;
 
 namespace DozensAPI
 {
+    /// <summary>
+    /// Dozens REST API へのアクセス手段を表すインターフェースです。
+    /// </summary>
     public interface IAPIEndPoint
     {
         /// <summary>
