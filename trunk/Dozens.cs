@@ -22,14 +22,29 @@ namespace DozensAPI
         public string BaseURL { get; set; }
 
         /// <summary>
-        /// <see cref="Dozens"/> クラスの新しいインスタンスを初期化します。
+        /// Dozens アカウントの ID と API KEY を指定して、<see cref="Dozens"/> クラスの新しいインスタンスを初期化します。
+        /// (ゾーンやレコードの追加/取得/変更/削除を行う前の、明示的な Auth メソッド呼び出しは不要です。引数に渡されたIDとAPIKEYで必要に応じて自動的に認証を行います。)
         /// </summary>
         /// <param name="dozensUserId">Dozensに開設したアカウントのIDを指定します。</param>
         /// <param name="apiKey">そのアカウントの API KEY を指定します。API KEY は Doznes の Web サイトにログインして、プロフィールのページ(https://dozens.jp/profile)から入手できます。</param>
         public Dozens(string dozensUserId, string apiKey)
         {
+            Initialize();
             this._DozensUserId = dozensUserId;
             this._APIKey = apiKey;
+        }
+
+        /// <summary>
+        /// <see cref="Dozens"/> クラスの新しいインスタンスを初期化します。
+        /// (ゾーンやレコードの追加/取得/変更/削除を行う前に、Auth メソッドによる認証が必要です。)
+        /// </summary>
+        public Dozens()
+        {
+            Initialize();
+        }
+
+        private void Initialize()
+        {
             this.BaseURL = "http://dozens.jp/api";
             this._Serializer = new JavaScriptSerializer();
             this._APIEndPoint = new DefaultAPIEndPoint();
@@ -52,6 +67,23 @@ namespace DozensAPI
                 var result = this._Serializer.Deserialize<AuthResult>(resultJson);
 
                 this.Token = result.auth_token;
+            }
+        }
+
+        /// <summary>
+        /// Dozens アカウントの ID と API KEY を指定して、認証を行います。
+        /// 成功すると、Token プロパティに認証結果のトークンが格納され、以後の操作
+        /// (ゾーンやレコードの追加/取得/変更/削除) で使われます。
+        /// </summary>
+        /// <param name="dozensUserId">Dozensに開設したアカウントのIDを指定します。</param>
+        /// <param name="apiKey">そのアカウントの API KEY を指定します。API KEY は Doznes の Web サイトにログインして、プロフィールのページ(https://dozens.jp/profile)から入手できます。</param>
+        public void Auth(string dozensUserId, string apiKey)
+        {
+            lock (this._APIEndPoint)
+            {
+                this._DozensUserId = dozensUserId;
+                this._APIKey = apiKey;
+                this.Auth();
             }
         }
 
@@ -164,38 +196,51 @@ namespace DozensAPI
             return result.record;
         }
 
-        public void UpdateRecord(int recordId, int prio, string content, int ttl = 7200)
+        public DozensRecord[] UpdateRecord(int recordId, int? prio, string content, int ttl = 7200)
         {
-            CallAPI<RecoredResult>("record/update", recordId, new { prio, content, ttl });
+            var result = CallAPI<RecoredResult>(
+                "record/update", 
+                recordId,
+                new { prio = prio.ToString(), content, ttl });
+            return result.record;
         }
 
-        public void UpdateRecord(string zoneName, string name, int prio, string content, int ttl = 7200)
+        public DozensRecord[] UpdateRecord(string zoneName, string name, int? prio, string content, int ttl = 7200)
         {
             var recordId = RetrieveRecordId(zoneName, name);
-            CallAPI<RecoredResult>("record/update", recordId, new { prio, content, ttl });
+            return UpdateRecord(recordId, prio, content, ttl);
         }
 
-        public void UpdateRecord(string fqdn, int prio, string content, int ttl = 7200)
+        public DozensRecord[] UpdateRecord(string fqdn, int? prio, string content, int ttl = 7200)
         {
             var recordId = RetrieveRecordId(fqdn);
-            CallAPI<RecoredResult>("record/update", recordId, new { prio, content, ttl });
+            return UpdateRecord(recordId, prio, content, ttl);
         }
 
-        public void CreateRecord(string zoneName, string name, string type, int prio, string content, int ttl = 7200)
+        public DozensRecord[] CreateRecord(string zoneName, string name, string type, int? prio, string content, int ttl = 7200)
         {
-            CallAPI<RecoredResult>("record/create", null,
-                new { domain = zoneName, name, type, prio, content, ttl});
+            var result = CallAPI<RecoredResult>(
+                "record/create",
+                param: new { 
+                    domain = zoneName, 
+                    name, 
+                    type, 
+                    prio = prio.ToString(), 
+                    content, 
+                    ttl });
+            return result.record;
         }
 
-        public void DeleteRecord(int recordId)
+        public DozensRecord[] DeleteRecord(int recordId)
         {
-            CallAPI<RecoredResult>("record/delete", recordId, verb: "DELETE");
+            var result = CallAPI<RecoredResult>("record/delete", recordId, verb: "DELETE");
+            return result.record;
         }
 
-        public void DeleteRecord(string zoneOrFQDName, string name = null)
+        public DozensRecord[] DeleteRecord(string zoneOrFQDName, string name = null)
         {
             var recordId = RetrieveRecordId(zoneOrFQDName, name);
-            DeleteRecord(recordId);
+            return DeleteRecord(recordId);
         }
 
         private int RetrieveRecordId(string zoneOrFQDName, string name = null)

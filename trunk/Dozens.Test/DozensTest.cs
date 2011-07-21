@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Configuration;
+using System.Collections.Generic;
 
 namespace DozensAPI.Test
 {
@@ -48,11 +49,16 @@ namespace DozensAPI.Test
         Dozens_Accessor CreateTarget()
         {
             var target = new Dozens_Accessor(this.DozensId, this.APIKey);
+            ModAPIEndPointIfUseMock(target);
+            return target;
+        }
+
+        private static void ModAPIEndPointIfUseMock(Dozens_Accessor target)
+        {
             if (ConfigurationManager.AppSettings["UseMock"].ToLower() == "true")
             {
                 target._APIEndPoint = new MockEndPoint();
             }
-            return target;
         }
 
         static bool RegexIsMatch(string expectedPattern, string actual)
@@ -67,6 +73,17 @@ namespace DozensAPI.Test
             target.Token.IsNull();
 
             target.Auth();
+            target.Token.IsNotNull();
+        }
+
+        [TestMethod]
+        public void Auth2Test()
+        {
+            var target = new Dozens_Accessor();
+            ModAPIEndPointIfUseMock(target);
+            target.Token.IsNull();
+
+            target.Auth(this.DozensId, this.APIKey);
             target.Token.IsNotNull();
         }
 
@@ -131,11 +148,15 @@ namespace DozensAPI.Test
 
         public void VerifyInitialRecords(Dozens_Accessor target)
         {
-            var records = target
-                .GetRecords("jsakamoto.info")
+            var records = target.GetRecords("jsakamoto.info");
+            VerifyInitialRecords(records);
+        }
+
+        public void VerifyInitialRecords(IEnumerable<DozensRecord> records)
+        {
+            records
                 .Select(record => record.ToString())
-                .ToArray();
-            records.Is(new[] {
+                .Is(new[] {
                 @"{Id = \d+, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.101, Prio = 0, TTL = 7200}" 
                 }, RegexIsMatch);
         }
@@ -145,15 +166,14 @@ namespace DozensAPI.Test
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
-            target.UpdateRecord(6654, 1, "192.168.0.201", 7200);
             
-            var records = target.GetRecords("jsakamoto.info")
-            .Select(record => record.ToString())
-            .ToArray();
-            records.Is(@"{Id = 6654, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.201, Prio = 1, TTL = 7200}");
+            target
+                .UpdateRecord(6654, 1, "192.168.0.201", 7200)
+                .Select(record => record.ToString())
+                .Is(@"{Id = 6654, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.201, Prio = 1, TTL = 7200}");
 
-            target.UpdateRecord(6654, 0, "192.168.0.101", 7200);
-            VerifyInitialRecords(target);
+            var records = target.UpdateRecord(6654, 0, "192.168.0.101", 7200);
+            VerifyInitialRecords(records);
         }
 
         [TestMethod()]
@@ -161,15 +181,14 @@ namespace DozensAPI.Test
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
-            target.UpdateRecord("jsakamoto.info", "www", 1, "192.168.0.201", 7200);
+            
+            target
+                .UpdateRecord("jsakamoto.info", "www", 1, "192.168.0.201", 7200)
+                .Select(record => record.ToString())
+                .Is(@"{Id = 6654, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.201, Prio = 1, TTL = 7200}");
 
-            var records = target.GetRecords("jsakamoto.info")
-            .Select(record => record.ToString())
-            .ToArray();
-            records.Is(@"{Id = 6654, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.201, Prio = 1, TTL = 7200}");
-
-            target.UpdateRecord("jsakamoto.info", "www", 0, "192.168.0.101", 7200);
-            VerifyInitialRecords(target);
+            var records = target.UpdateRecord("jsakamoto.info", "www", 0, "192.168.0.101", 7200);
+            VerifyInitialRecords(records);
         }
 
         [TestMethod()]
@@ -177,15 +196,14 @@ namespace DozensAPI.Test
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
-            target.UpdateRecord("jsakamoto.info", "www.jsakamoto.info", 1, "192.168.0.201", 7200);
+            
+            target
+                .UpdateRecord("jsakamoto.info", "www.jsakamoto.info", 1, "192.168.0.201", 7200)
+                .Select(record => record.ToString())
+                .Is(@"{Id = 6654, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.201, Prio = 1, TTL = 7200}");
 
-            var records = target.GetRecords("jsakamoto.info")
-            .Select(record => record.ToString())
-            .ToArray();
-            records.Is(@"{Id = 6654, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.201, Prio = 1, TTL = 7200}");
-
-            target.UpdateRecord("jsakamoto.info", "www.jsakamoto.info", 0, "192.168.0.101", 7200);
-            VerifyInitialRecords(target);
+            var records = target.UpdateRecord("jsakamoto.info", "www.jsakamoto.info", 0, "192.168.0.101", 7200);
+            VerifyInitialRecords(records);
         }
 
         [TestMethod()]
@@ -193,15 +211,29 @@ namespace DozensAPI.Test
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
-            target.UpdateRecord("www.jsakamoto.info", 1, "192.168.0.201", 7200);
+            
+            target
+                .UpdateRecord("www.jsakamoto.info", 1, "192.168.0.201", 7200)
+                .Select(record => record.ToString())
+                .Is(@"{Id = 6654, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.201, Prio = 1, TTL = 7200}");
 
-            var records = target.GetRecords("jsakamoto.info")
-            .Select(record => record.ToString())
-            .ToArray();
-            records.Is(@"{Id = 6654, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.201, Prio = 1, TTL = 7200}");
+            var records = target.UpdateRecord("www.jsakamoto.info", 0, "192.168.0.101", 7200);
+            VerifyInitialRecords(records);
+        }
 
-            target.UpdateRecord("www.jsakamoto.info", 0, "192.168.0.101", 7200);
+        [TestMethod()]
+        public void UpdateRecordsPrioIsNullTest()
+        {
+            var target = this.CreateTarget();
             VerifyInitialRecords(target);
+
+            target
+                .UpdateRecord("www.jsakamoto.info", null, "192.168.0.201", 7200)
+                .Select(record => record.ToString())
+                .Is(@"{Id = 6654, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.201, Prio = , TTL = 7200}");
+
+            var records = target.UpdateRecord("www.jsakamoto.info", 0, "192.168.0.101", 7200);
+            VerifyInitialRecords(records);
         }
 
         [TestMethod()]
@@ -209,19 +241,18 @@ namespace DozensAPI.Test
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
-            target.CreateRecord("jsakamoto.info", "", "MX", 0, "smtp.jsakamoto.info", 7200);
-
-            var records = target.GetRecords("jsakamoto.info");
-            records.Select(r => r.ToString())
-                .ToArray()
+            
+            var records = target.CreateRecord("jsakamoto.info", "", "MX", 0, "smtp.jsakamoto.info", 7200);
+            records
+                .Select(r => r.ToString())
                 .Is(new[]{
                     @"{Id = \d+, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.101, Prio = 0, TTL = 7200}",                    
                     @"{Id = \d+, Name = jsakamoto\.info, Type = MX, Content = smtp\.jsakamoto\.info, Prio = 0, TTL = 7200}"
                 }, RegexIsMatch);
 
             var record = records.First(r => r.Type == "MX");
-            target.DeleteRecord(record.Id);
-            VerifyInitialRecords(target);
+            var finalRecords = target.DeleteRecord(record.Id);
+            VerifyInitialRecords(finalRecords);
         }
 
         [TestMethod()]
@@ -230,8 +261,8 @@ namespace DozensAPI.Test
             var target = this.CreateTarget();
             CreateCNAMETest(target);
 
-            target.DeleteRecord("jsakamoto.info", "pop3");
-            VerifyInitialRecords(target);
+            var records = target.DeleteRecord("jsakamoto.info", "pop3");
+            VerifyInitialRecords(records);
         }
 
         [TestMethod()]
@@ -240,8 +271,8 @@ namespace DozensAPI.Test
             var target = this.CreateTarget();
             CreateCNAMETest(target);
 
-            target.DeleteRecord("jsakamoto.info", "pop3.jsakamoto.info");
-            VerifyInitialRecords(target);
+            var records = target.DeleteRecord("jsakamoto.info", "pop3.jsakamoto.info");
+            VerifyInitialRecords(records);
         }
 
         [TestMethod()]
@@ -250,24 +281,38 @@ namespace DozensAPI.Test
             var target = this.CreateTarget();
             CreateCNAMETest(target);
 
-            target.DeleteRecord("pop3.jsakamoto.info");
-            VerifyInitialRecords(target);
+            var records = target.DeleteRecord("pop3.jsakamoto.info");
+            VerifyInitialRecords(records);
         }
 
-        private DozensRecord[] CreateCNAMETest(Dozens_Accessor target)
+        [TestMethod()]
+        public void CreateAndDeleteRecordPrioIsNull()
+        {
+            var target = this.CreateTarget();
+            VerifyInitialRecords(target);
+
+            target
+                .CreateRecord("jsakamoto.info", "pop3", "CNAME", null, "imap4.jsakamoto.info", 7200)
+                .Select(r => r.ToString())
+                .Is(new[]{
+                    @"{Id = \d+, Name = www\.jsakamoto\.info, Type = A, Content = 192\.168\.0\.101, Prio = 0, TTL = 7200}",
+                    @"{Id = \d+, Name = pop3\.jsakamoto\.info, Type = CNAME, Content = imap4\.jsakamoto\.info, Prio = , TTL = 7200}"
+                }, RegexIsMatch);
+
+            var records = target.DeleteRecord("pop3.jsakamoto.info");
+            VerifyInitialRecords(records);
+        }
+
+        private void CreateCNAMETest(Dozens_Accessor target)
         {
             VerifyInitialRecords(target);
-            target.CreateRecord("jsakamoto.info", "pop3", "CNAME", 10, "imap4.jsakamoto.info", 7200);
-
-            var records = target.GetRecords("jsakamoto.info");
-            records.Select(r => r.ToString())
-                .ToArray()
+            target
+                .CreateRecord("jsakamoto.info", "pop3", "CNAME", 10, "imap4.jsakamoto.info", 7200)
+                .Select(r => r.ToString())
                 .Is(new[]{
                     @"{Id = \d+, Name = www\.jsakamoto\.info, Type = A, Content = 192\.168\.0\.101, Prio = 0, TTL = 7200}",
                     @"{Id = \d+, Name = pop3\.jsakamoto\.info, Type = CNAME, Content = imap4\.jsakamoto\.info, Prio = 10, TTL = 7200}"
                 }, RegexIsMatch);
-
-            return records;
         }
     }
 }

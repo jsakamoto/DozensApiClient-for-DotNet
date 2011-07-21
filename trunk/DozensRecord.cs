@@ -10,7 +10,7 @@ namespace DozensAPI
         public int Id { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }
-        public int Prio { get; set; }
+        public int? Prio { get; set; }
         public string Content { get; set; }
         public int TTL { get; set; }
 

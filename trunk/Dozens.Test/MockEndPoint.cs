@@ -25,10 +25,13 @@ namespace DozensAPI.Test
 
     public class MockEndPoint : IAPIEndPoint
     {
+        /// <summary>ゾーンのリスト</summary>
         List<DozensZone> _Zones;
 
+        /// <summary>ゾーンIDで区別される、ゾーンごとのレコードのリスト</summary>
         Dictionary<int, List<DozensRecord>> _Records;
 
+        /// <summary>コンストラクタ。ゾーン情報やレコードの初期設定もここで行ってます。</summary>
         public MockEndPoint()
         {
             this.Headers = new WebHeaderCollection();
@@ -84,7 +87,7 @@ namespace DozensAPI.Test
             public string google_authorize { get; set; }
             public string domain { get; set; }
             public string type { get; set; }
-            public int prio { get; set; }
+            public int? prio { get; set; }
             public string content { get; set; }
             public int ttl { get; set; }
         }
