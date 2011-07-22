@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 
 namespace DozensAPI
@@ -10,6 +12,7 @@ namespace DozensAPI
     /// <summary>
     /// Dozens の REST API を呼び出して、ゾーンやレコードの追加・取得・変更・削除を行います。
     /// </summary>
+    [ProgId("DozensAPI.Dozens")]
     public class Dozens
     {
         private JavaScriptSerializer _Serializer;
@@ -243,12 +246,28 @@ namespace DozensAPI
         /// <param name="content">変更後の値</param>
         /// <param name="ttl">変更後のTTL。省略時は 7200 です。</param>
         /// <returns>指定のレコードと同じゾーンに登録されているすべてのレコードの配列</returns>
-        public DozensRecord[] UpdateRecord(int recordId, int? prio, string content, int ttl = 7200)
+        public DozensRecord[] UpdateRecord(int recordId, int prio, string content, int ttl = 7200)
         {
+            return UpdateRecord(recordId, (object)prio, content, ttl);
+        }
+
+        /// <summary>
+        /// 指定したレコードの登録内容を変更(更新)します。
+        /// </summary>
+        /// <param name="recordId">変更(更新)する対象のレコードを一意に識別するレコードID</param>
+        /// <param name="prio">変更後のプライオリティ</param>
+        /// <param name="content">変更後の値</param>
+        /// <param name="ttl">変更後のTTL。省略時は 7200 です。</param>
+        /// <returns>指定のレコードと同じゾーンに登録されているすべてのレコードの配列</returns>
+        public DozensRecord[] UpdateRecord(int recordId, object prio, string content, int ttl = 7200)
+        {
+            if (prio != null && Regex.IsMatch(prio.ToString(), @"^\d{0,7}$") == false)
+                    throw new ArgumentException("prio には、null、または整数値のみが指定できます。");
+
             var result = CallAPI<RecoredResult>(
-                "record/update", 
+                "record/update",
                 recordId,
-                new { prio = prio.ToString(), content, ttl });
+                new { prio = (prio ?? "").ToString(), content, ttl });
             return result.record;
         }
 
@@ -261,7 +280,22 @@ namespace DozensAPI
         /// <param name="content">変更後の値</param>
         /// <param name="ttl">変更後のTTL。省略時は 7200 です。</param>
         /// <returns>指定のゾーンに登録されているすべてのレコードの配列</returns>
-        public DozensRecord[] UpdateRecord(string zoneName, string name, int? prio, string content, int ttl = 7200)
+        public DozensRecord[] UpdateRecord(string zoneName, string name, int prio, string content, int ttl = 7200)
+        {
+            var recordId = RetrieveRecordId(zoneName, name);
+            return UpdateRecord(recordId, prio, content, ttl);
+        }
+
+        /// <summary>
+        /// 指定したレコードの登録内容を変更(更新)します。
+        /// </summary>
+        /// <param name="zoneName">変更(更新)対象のレコードを含んでいるゾーンの名前(ex."dozens.jp")</param>
+        /// <param name="name">変更(更新)対象のレコードの名前(ex."www", "www.dozens.jp")</param>
+        /// <param name="prio">変更後のプライオリティ</param>
+        /// <param name="content">変更後の値</param>
+        /// <param name="ttl">変更後のTTL。省略時は 7200 です。</param>
+        /// <returns>指定のゾーンに登録されているすべてのレコードの配列</returns>
+        public DozensRecord[] UpdateRecord(string zoneName, string name, object prio, string content, int ttl = 7200)
         {
             var recordId = RetrieveRecordId(zoneName, name);
             return UpdateRecord(recordId, prio, content, ttl);
@@ -275,10 +309,39 @@ namespace DozensAPI
         /// <param name="content">変更後の値</param>
         /// <param name="ttl">変更後のTTL。省略時は 7200 です。</param>
         /// <returns>指定のレコードと同じゾーンに登録されているすべてのレコードの配列</returns>
-        public DozensRecord[] UpdateRecord(string fqdn, int? prio, string content, int ttl = 7200)
+        public DozensRecord[] UpdateRecord(string fqdn, int prio, string content, int ttl = 7200)
         {
             var recordId = RetrieveRecordId(fqdn);
             return UpdateRecord(recordId, prio, content, ttl);
+        }
+
+        /// <summary>
+        /// 指定したレコードの登録内容を変更(更新)します。
+        /// </summary>
+        /// <param name="fqdn">変更(更新)対象のレコードを特定できるFQDN(ex."www.dozens.jp")</param>
+        /// <param name="prio">変更後のプライオリティ</param>
+        /// <param name="content">変更後の値</param>
+        /// <param name="ttl">変更後のTTL。省略時は 7200 です。</param>
+        /// <returns>指定のレコードと同じゾーンに登録されているすべてのレコードの配列</returns>
+        public DozensRecord[] UpdateRecord(string fqdn, object prio, string content, int ttl = 7200)
+        {
+            var recordId = RetrieveRecordId(fqdn);
+            return UpdateRecord(recordId, prio, content, ttl);
+        }
+
+        /// <summary>
+        /// 指定のゾーンにレコードを新規登録します。
+        /// </summary>
+        /// <param name="zoneName">レコードを新規登録する対象のゾーン名(ex."dozens.jp")</param>
+        /// <param name="name">新規登録するレコードの名前(ex."www","www.dozens.jp")</param>
+        /// <param name="type">新規登録するレコードのタイプ(ex."A","CNAME","MX","TXT")</param>
+        /// <param name="prio">新規登録するレコードのプライオリティ。</param>
+        /// <param name="content">新規登録するレコードの値</param>
+        /// <param name="ttl">新規登録するレコードの TTL。省略時は 7200 です。</param>
+        /// <returns>指定のレコードと同じゾーンに登録されているすべてのレコードの配列</returns>
+        public DozensRecord[] CreateRecord(string zoneName, string name, string type, int prio, string content, int ttl = 7200)
+        {
+            return CreateRecord(zoneName, name, type, (object)prio, content, ttl);
         }
 
         /// <summary>
@@ -291,17 +354,22 @@ namespace DozensAPI
         /// <param name="content">新規登録するレコードの値</param>
         /// <param name="ttl">新規登録するレコードの TTL。省略時は 7200 です。</param>
         /// <returns>指定のレコードと同じゾーンに登録されているすべてのレコードの配列</returns>
-        public DozensRecord[] CreateRecord(string zoneName, string name, string type, int? prio, string content, int ttl = 7200)
+        public DozensRecord[] CreateRecord(string zoneName, string name, string type, object prio, string content, int ttl = 7200)
         {
+            if (prio != null && Regex.IsMatch(prio.ToString(), @"^\d{0,7}$") == false)
+                throw new ArgumentException("prio には、null、または整数値のみが指定できます。");
+
             var result = CallAPI<RecoredResult>(
                 "record/create",
-                param: new { 
-                    domain = zoneName, 
-                    name, 
-                    type, 
-                    prio = prio.ToString(), 
-                    content, 
-                    ttl });
+                param: new
+                {
+                    domain = zoneName,
+                    name,
+                    type,
+                    prio = (prio ?? "").ToString(),
+                    content,
+                    ttl
+                });
             return result.record;
         }
 
