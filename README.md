@@ -58,3 +58,6 @@ http://youtu.be/a5bKMkI0P4M
 
 
 
+## ライセンス / License
+
+[Mozilla Public License Version 2.0](LICENSE)
