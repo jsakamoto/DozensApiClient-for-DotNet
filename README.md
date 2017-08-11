@@ -1,4 +1,4 @@
-Dozens API Client for .NET (and COM)
+Dozens API Client for .NET (and COM) [![Build status](https://ci.appveyor.com/api/projects/status/qx6j2tt7lgfu1965?svg=true)](https://ci.appveyor.com/project/jsakamoto/dozensapiclient-for-dotnet)
 ==========================
 
 Summary / 概要
