@@ -57,15 +57,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Dozens.snk" />
-    <None Include="DozensAPIClient.nuspec">
+    <None Include="Dozens.nuspec">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>pushd "$(ProjectDir)"
-IF $(ConfigurationName) == Release nuget pack DozensAPIClient.nuspec -o "NuGet Package"
-popd
+    <PostBuildEvent>if not "$(ConfigurationName)" == "Release" goto END
+pushd "$(ProjectDir)"
+"$(SolutionDir).nuget\nuget.exe" pack "$(ProjectName).csproj" -o $(OutDir)
+:END
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
