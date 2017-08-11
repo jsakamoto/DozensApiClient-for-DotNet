@@ -1,85 +1,53 @@
-﻿using DozensAPI;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Configuration;
-using System.Collections.Generic;
+using Toolbelt.DynamicBinderExtension;
+using Xunit;
 
 namespace DozensAPI.Test
 {
-    [TestClass()]
     public class DozensTest
     {
-        public TestContext TestContext { get; set; }
+        public string DozensId => ConfigurationManager.AppSettings["DozensId"];
 
-        public string DozensId { get { return ConfigurationManager.AppSettings["DozensId"]; } }
-        public string APIKey { get { return ConfigurationManager.AppSettings["APIKey"]; } }
+        public string APIKey => ConfigurationManager.AppSettings["APIKey"];
 
-        #region 追加のテスト属性
-        // 
-        //テストを作成するときに、次の追加属性を使用することができます:
-        //
-        //クラスの最初のテストを実行する前にコードを実行するには、ClassInitialize を使用
-        //[ClassInitialize()]
-        //public static void MyClassInitialize(TestContext testContext)
-        //{
-        //}
-        //
-        //クラスのすべてのテストを実行した後にコードを実行するには、ClassCleanup を使用
-        //[ClassCleanup()]
-        //public static void MyClassCleanup()
-        //{
-        //}
-        //
-        //各テストを実行する前にコードを実行するには、TestInitialize を使用
-        //[TestInitialize()]
-        //public void MyTestInitialize()
-        //{
-        //}
-        //
-        //各テストを実行した後にコードを実行するには、TestCleanup を使用
-        //[TestCleanup()]
-        //public void MyTestCleanup()
-        //{
-        //}
-        //
-        #endregion
-
-        Dozens_Accessor CreateTarget()
+        Dozens CreateTarget()
         {
-            var target = new Dozens_Accessor(this.DozensId, this.APIKey);
+            var target = new Dozens(this.DozensId, this.APIKey);
             ModAPIEndPointIfUseMock(target);
             return target;
         }
 
-        private static void ModAPIEndPointIfUseMock(Dozens_Accessor target)
+        private static void ModAPIEndPointIfUseMock(Dozens target)
         {
             if (ConfigurationManager.AppSettings["UseMock"].ToLower() == "true")
             {
-                target._APIEndPoint = new MockEndPoint();
+                target.ToDynamic()._APIEndPoint = new MockEndPoint();
             }
         }
 
         static bool RegexIsMatch(string expectedPattern, string actual)
         {
-            return Regex.IsMatch(actual, expectedPattern);
+            return Regex.IsMatch(expectedPattern, actual);
         }
 
-        [TestMethod]
+        [Fact]
         public void AuthTest()
         {
             var target = this.CreateTarget();
             target.Token.IsNull();
 
-            target.Auth();
+            target.ToDynamic().Auth();
             target.Token.IsNotNull();
         }
 
-        [TestMethod]
+        [Fact]
         public void Auth2Test()
         {
-            var target = new Dozens_Accessor();
+            var target = new Dozens();
             ModAPIEndPointIfUseMock(target);
             target.Token.IsNull();
 
@@ -87,7 +55,7 @@ namespace DozensAPI.Test
             target.Token.IsNotNull();
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetZonesTest()
         {
             var target = this.CreateTarget();
@@ -95,7 +63,7 @@ namespace DozensAPI.Test
             VerifyInitialZonez(target);
         }
 
-        public void VerifyInitialZonez(Dozens_Accessor target)
+        public void VerifyInitialZonez(Dozens target)
         {
             var zones = target
                 .GetZones()
@@ -104,7 +72,7 @@ namespace DozensAPI.Test
             zones.Is(@"{Id = 200, Name = ""jsakamoto.info""}");
         }
 
-        [TestMethod]
+        [Fact]
         public void CreateAndDeleteZoneByIdTest()
         {
             var target = this.CreateTarget();
@@ -115,21 +83,21 @@ namespace DozensAPI.Test
             VerifyInitialZonez(target);
         }
 
-        private DozensZone[] CreateZoneTest(Dozens_Accessor target)
+        private DozensZone[] CreateZoneTest(Dozens target)
         {
             VerifyInitialZonez(target);
 
             var zones = target.CreateZone("subdomain.jsakamoto.info");
             zones
                 .Select(z => z.ToString())
-                .Is(new[] { 
+                .Is(new[] {
                 @"{Id = \d+, Name = ""subdomain\.jsakamoto\.info""}",
-                @"{Id = 200, Name = ""jsakamoto\.info""}" 
+                @"{Id = 200, Name = ""jsakamoto\.info""}"
                 }, RegexIsMatch);
             return zones;
         }
 
-        [TestMethod]
+        [Fact]
         public void CreateAndDeleteZoneByNameTest()
         {
             var target = this.CreateTarget();
@@ -139,14 +107,14 @@ namespace DozensAPI.Test
             VerifyInitialZonez(target);
         }
 
-        [TestMethod()]
+        [Fact]
         public void GetRecordsTest()
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
         }
 
-        public void VerifyInitialRecords(Dozens_Accessor target)
+        public void VerifyInitialRecords(Dozens target)
         {
             var records = target.GetRecords("jsakamoto.info");
             VerifyInitialRecords(records);
@@ -157,16 +125,16 @@ namespace DozensAPI.Test
             records
                 .Select(record => record.ToString())
                 .Is(new[] {
-                @"{Id = \d+, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.101, Prio = 0, TTL = 7200}" 
+                @"{Id = \d+, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.101, Prio = 0, TTL = 7200}"
                 }, RegexIsMatch);
         }
 
-        [TestMethod()]
+        [Fact]
         public void UpdateRecordsByIdTest()
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
-            
+
             target
                 .UpdateRecord(6654, 1, "192.168.0.201", 7200)
                 .Select(record => record.ToString())
@@ -176,12 +144,12 @@ namespace DozensAPI.Test
             VerifyInitialRecords(records);
         }
 
-        [TestMethod()]
+        [Fact]
         public void UpdateRecordsByNameTest()
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
-            
+
             target
                 .UpdateRecord("jsakamoto.info", "www", 1, "192.168.0.201", 7200)
                 .Select(record => record.ToString())
@@ -191,12 +159,12 @@ namespace DozensAPI.Test
             VerifyInitialRecords(records);
         }
 
-        [TestMethod()]
+        [Fact]
         public void UpdateRecordsByFQDNTest()
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
-            
+
             target
                 .UpdateRecord("jsakamoto.info", "www.jsakamoto.info", 1, "192.168.0.201", 7200)
                 .Select(record => record.ToString())
@@ -206,12 +174,12 @@ namespace DozensAPI.Test
             VerifyInitialRecords(records);
         }
 
-        [TestMethod()]
+        [Fact]
         public void UpdateRecordsByFQDNOnlyTest()
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
-            
+
             target
                 .UpdateRecord("www.jsakamoto.info", 1, "192.168.0.201", 7200)
                 .Select(record => record.ToString())
@@ -221,7 +189,7 @@ namespace DozensAPI.Test
             VerifyInitialRecords(records);
         }
 
-        [TestMethod()]
+        [Fact]
         public void UpdateRecordsPrioIsNullTest()
         {
             var target = this.CreateTarget();
@@ -236,17 +204,17 @@ namespace DozensAPI.Test
             VerifyInitialRecords(records);
         }
 
-        [TestMethod()]
+        [Fact]
         public void CreateAndDeleteRecordByIdTest()
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
-            
+
             var records = target.CreateRecord("jsakamoto.info", "", "MX", 0, "smtp.jsakamoto.info", 7200);
             records
                 .Select(r => r.ToString())
                 .Is(new[]{
-                    @"{Id = \d+, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.101, Prio = 0, TTL = 7200}",                    
+                    @"{Id = \d+, Name = www.jsakamoto.info, Type = A, Content = 192.168.0.101, Prio = 0, TTL = 7200}",
                     @"{Id = \d+, Name = jsakamoto\.info, Type = MX, Content = smtp\.jsakamoto\.info, Prio = 0, TTL = 7200}"
                 }, RegexIsMatch);
 
@@ -255,7 +223,7 @@ namespace DozensAPI.Test
             VerifyInitialRecords(finalRecords);
         }
 
-        [TestMethod()]
+        [Fact]
         public void CreateAndDeleteRecordByNameTest()
         {
             var target = this.CreateTarget();
@@ -265,7 +233,7 @@ namespace DozensAPI.Test
             VerifyInitialRecords(records);
         }
 
-        [TestMethod()]
+        [Fact]
         public void CreateAndDeleteRecordByFQDNTest()
         {
             var target = this.CreateTarget();
@@ -275,7 +243,7 @@ namespace DozensAPI.Test
             VerifyInitialRecords(records);
         }
 
-        [TestMethod()]
+        [Fact]
         public void CreateAndDeleteRecordByFQDNOnlyTest()
         {
             var target = this.CreateTarget();
@@ -285,7 +253,7 @@ namespace DozensAPI.Test
             VerifyInitialRecords(records);
         }
 
-        [TestMethod()]
+        [Fact]
         public void CreateAndDeleteRecordPrioIsNull()
         {
             var target = this.CreateTarget();
@@ -303,7 +271,7 @@ namespace DozensAPI.Test
             VerifyInitialRecords(records);
         }
 
-        private void CreateCNAMETest(Dozens_Accessor target)
+        private void CreateCNAMETest(Dozens target)
         {
             VerifyInitialRecords(target);
             target

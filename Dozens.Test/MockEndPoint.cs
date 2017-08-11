@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace DozensAPI.Test
 {
@@ -60,7 +60,7 @@ namespace DozensAPI.Test
             //Headers["Host"].Is("dozens.jp");
             Headers[HttpRequestHeader.Accept].Is("application/json");
 
-            var commands = new []{ 
+            var commands = new[]{
                 new Command("/api/authorize", "GET", ProcAuth),
                 new Command("/api/zone", "GET", ProcGetZone),
                 new Command("/api/zone/create", "POST", ProcCreateZone),
@@ -135,7 +135,7 @@ namespace DozensAPI.Test
             data.name.IsNot("");
 
             var nextZoneId = _Zones.Max(z => z.Id) + 1;
-            _Zones.Insert(0, new DozensZone { Id=0, Name=data.name });
+            _Zones.Insert(0, new DozensZone { Id = 0, Name = data.name });
 
             return GetZonesJson();
         }
@@ -166,8 +166,8 @@ namespace DozensAPI.Test
             var records = _Records[zone.Id]
                 .Select(r => string.Format(
                     @"{{""id"":""{0}"",""name"":""{1}"",""type"":""{2}"",""prio"":""{3}"",""content"":""{4}"",""ttl"":""{5}""}}",
-                    r.Id, 
-                    r.Name == "" ? zone.Name : r.Name + "." + zone.Name, 
+                    r.Id,
+                    r.Name == "" ? zone.Name : r.Name + "." + zone.Name,
                     r.Type, r.Prio, r.Content, r.TTL)
                 );
             return @"{""record"":[" + string.Join(",", records) + "]}";
@@ -179,18 +179,18 @@ namespace DozensAPI.Test
             data.content.IsNotNull();
             data.content.IsNot("");
             data.ttl.Is(t => new[] { 60, 3600, 7200, 86400 }.Contains(t));
-            
+
             var recordId = int.Parse(pathInfo.Groups["recordId"].Value);
-            
+
             var target = (from zone in _Zones
                           from record in _Records[zone.Id]
                           where record.Id == recordId
                           select new { zone, record }).Single();
-            
+
             target.record.Prio = data.prio;
             target.record.Content = data.content;
             target.record.TTL = data.ttl;
-            
+
             return GetRecordsJson(target.zone);
         }
 
@@ -204,7 +204,8 @@ namespace DozensAPI.Test
 
             var zone = _Zones.Single(z => z.Name == data.domain);
             var records = _Records[zone.Id];
-            records.Add(new DozensRecord { 
+            records.Add(new DozensRecord
+            {
                 Name = data.name,
                 Type = data.type,
                 Prio = data.prio,
