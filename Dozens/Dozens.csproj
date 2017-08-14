@@ -53,6 +53,7 @@
     <Compile Include="DozensRecord.cs" />
     <Compile Include="DozensZone.cs" />
     <Compile Include="IAPIEndPoint.cs" />
+    <Compile Include="Internal\JavaScriptSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

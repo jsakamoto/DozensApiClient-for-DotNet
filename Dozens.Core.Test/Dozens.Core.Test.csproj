@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>    
+    <TargetFramework>netcoreapp1.1</TargetFramework>    
+    <RootNamespace>DozensAPI.Test</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Dozens.Test\AppSettings.cs" Link="AppSettings.cs" />
+    <Compile Include="..\Dozens.Test\DozensTest.cs" Link="DozensTest.cs" />
+    <Compile Include="..\Dozens.Test\Dozens_TestAdaptor.cs" Link="Dozens_TestAdaptor.cs" />
+    <Compile Include="..\Dozens.Test\MockEndPoint.cs" Link="MockEndPoint.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\Dozens.Test\application.json" Link="application.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ChainingAssertion-xUnit.Bin" Version="1.7.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="xunit" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0-beta3-build3705" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Dozens.Core\Dozens.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="application.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="application.user.json">
+      <DependentUpon>application.json</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -42,10 +42,10 @@
     <Reference Include="ChainingAssertion.xUnit, Version=1.7.4.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\ChainingAssertion-xUnit.Bin.1.7.4\lib\net45\ChainingAssertion.xUnit.dll</HintPath>
     </Reference>
-    <Reference Include="DynamicBinder, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\DynamicBinder.1.5.0.0\lib\net40\DynamicBinder.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Extensions" />
@@ -71,11 +71,19 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="AppSettings.cs" />
     <Compile Include="DozensTest.cs" />
+    <Compile Include="Dozens_TestAdaptor.cs" />
     <Compile Include="MockEndPoint.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="application.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="application.user.json">
+      <DependentUpon>application.json</DependentUpon>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

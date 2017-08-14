@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.4</TargetFramework>
+    <AssemblyName>Dozens</AssemblyName>
+    <RootNamespace>DozensAPI</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Dozens\Dozens.cs" Link="Dozens.cs" />
+    <Compile Include="..\Dozens\DozensException.cs" Link="DozensException.cs" />
+    <Compile Include="..\Dozens\DozensRecord.cs" Link="DozensRecord.cs" />
+    <Compile Include="..\Dozens\DozensZone.cs" Link="DozensZone.cs" />
+    <Compile Include="..\Dozens\IAPIEndPoint.cs" Link="IAPIEndPoint.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+  </ItemGroup>
+
+</Project>

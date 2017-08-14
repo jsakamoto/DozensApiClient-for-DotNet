@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
-using System.Web.Script.Serialization;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace DozensAPI.Test
@@ -56,9 +56,9 @@ namespace DozensAPI.Test
         public string UploadString(string address, string method, string data)
         {
             var url = new Uri(address);
-            url.GetLeftPart(UriPartial.Authority).Is("http://dozens.jp");
+            url.GetComponents(UriComponents.SchemeAndServer, UriFormat.UriEscaped).Is("http://dozens.jp");
             //Headers["Host"].Is("dozens.jp");
-            Headers[HttpRequestHeader.Accept].Is("application/json");
+            Headers["Accept"].Is("application/json");
 
             var commands = new[]{
                 new Command("/api/authorize", "GET", ProcAuth),
@@ -95,7 +95,7 @@ namespace DozensAPI.Test
         public Data DeserializeJson(string data)
         {
             if (string.IsNullOrEmpty(data)) return null;
-            return new JavaScriptSerializer().Deserialize<Data>(data);
+            return JsonConvert.DeserializeObject<Data>(data);
         }
 
         public string ProcAuth(Match pathInfo, Data data)

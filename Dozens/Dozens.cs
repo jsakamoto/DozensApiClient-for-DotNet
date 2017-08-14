@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Web.Script.Serialization;
 
 namespace DozensAPI
 {
@@ -17,10 +16,10 @@ namespace DozensAPI
     {
         private JavaScriptSerializer _Serializer;
 
-        private IAPIEndPoint _APIEndPoint;
+        protected IAPIEndPoint APIEndPoint { get; set; }
 
         private string _DozensUserId;
-        
+
         private string _APIKey;
 
         /// <summary>
@@ -61,7 +60,7 @@ namespace DozensAPI
         {
             this.BaseURL = "http://dozens.jp/api";
             this._Serializer = new JavaScriptSerializer();
-            this._APIEndPoint = new DefaultAPIEndPoint();
+            this.APIEndPoint = new DefaultAPIEndPoint();
         }
 
         [DebuggerDisplay("{auth_token}")]
@@ -70,9 +69,9 @@ namespace DozensAPI
             public string auth_token { get; set; }
         }
 
-        private void Auth()
+        protected void Auth()
         {
-            lock (this._APIEndPoint)
+            lock (this.APIEndPoint)
             {
                 this.Token = null;
 
@@ -93,7 +92,7 @@ namespace DozensAPI
         /// <param name="apiKey">そのアカウントの API KEY を指定します。API KEY は Doznes の Web サイトにログインして、プロフィールのページ(https://dozens.jp/profile)から入手できます。</param>
         public void Auth(string dozensUserId, string apiKey)
         {
-            lock (this._APIEndPoint)
+            lock (this.APIEndPoint)
             {
                 this._DozensUserId = dozensUserId;
                 this._APIKey = apiKey;
@@ -112,7 +111,7 @@ namespace DozensAPI
         /// </summary>
         protected T CallAPI<T>(string actionName, object target = null, object param = null, string verb = null)
         {
-            lock (this._APIEndPoint)
+            lock (this.APIEndPoint)
             {
                 if (string.IsNullOrEmpty(this.Token)) Auth();
 
@@ -148,7 +147,7 @@ namespace DozensAPI
 
         private IAPIEndPoint GetAPIEndPoint()
         {
-            var client = this._APIEndPoint;
+            var client = this.APIEndPoint;
             var baseUrl = new Uri(this.BaseURL);
             client.Headers.Clear();
             client.Headers.Add(HttpRequestHeader.Accept, "application/json");
@@ -190,7 +189,8 @@ namespace DozensAPI
         /// <returns>登録されているすべてのゾーンの配列</returns>
         public DozensZone[] CreateZone(string zoneName, bool addGoogleApps = false, string googleAuthorize = null)
         {
-            var param = new { 
+            var param = new
+            {
                 name = zoneName,
                 add_google_apps = addGoogleApps,
                 google_authorize = googleAuthorize ?? ""
@@ -262,7 +262,7 @@ namespace DozensAPI
         public DozensRecord[] UpdateRecord(int recordId, object prio, string content, int ttl = 7200)
         {
             if (prio != null && Regex.IsMatch(prio.ToString(), @"^\d{0,7}$") == false)
-                    throw new ArgumentException("prio には、null、または整数値のみが指定できます。");
+                throw new ArgumentException("prio には、null、または整数値のみが指定できます。");
 
             var result = CallAPI<RecoredResult>(
                 "record/update",
