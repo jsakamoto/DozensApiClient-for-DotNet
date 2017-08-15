@@ -129,4 +129,8 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="GenerateUserApplicationSettings" BeforeTargets="BeforeBuild" Condition="!Exists('application.user.json')">
+    <WriteLinesToFile File="application.user.json" Lines="{}" Overwrite="false" Encoding="ascii" />
+    <Copy SourceFiles="application.user.json" DestinationFolder="$(TargetDir)" />
+  </Target>
 </Project>
