@@ -128,6 +128,13 @@ namespace DozensAPI
                         apiEndPoint.UploadString(url, verb ?? "POST", paramJson ?? "") :
                         apiEndPoint.DownloadString(url);
 
+                    // Hack: レコード取得で0件のときは定型ではないJSON(空配列)で返ってくるので、定型に書き換え
+                    if (resultJson == "[]")
+                    {
+                        if (typeof(T) == typeof(RecoredResult)) resultJson = "{\"record\":[]}";
+                        if (typeof(T) == typeof(ZoneResult)) resultJson = "{\"domain\":[]}";
+                    }
+
                     var result = this._Serializer.Deserialize<T>(resultJson);
                     return result;
                 }

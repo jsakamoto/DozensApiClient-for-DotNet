@@ -35,12 +35,13 @@ namespace DozensAPI.Test
         public MockEndPoint()
         {
             this.Headers = new WebHeaderCollection();
-            this._Zones = new List<DozensZone>();
-            this._Zones.Add(new DozensZone { Id = 200, Name = "jsakamoto.info" });
-            var records = new List<DozensRecord>();
-            records.Add(new DozensRecord { Id = 6654, Name = "www", Prio = 0, Content = "192.168.0.101", Type = "A", TTL = 7200 });
+            var zone = new DozensZone { Id = 1, Name = "jsakamoto.info" };
+            this._Zones = new List<DozensZone> { zone };
+            var records = new List<DozensRecord> {
+                new DozensRecord { Id = 2, Name = "www", Prio = 0, Content = "192.168.0.101", Type = "A", TTL = 7200 }
+            };
             this._Records = new Dictionary<int, List<DozensRecord>> {
-                {200, records}
+                {zone.Id, records}
             };
         }
 
@@ -120,12 +121,15 @@ namespace DozensAPI.Test
 
         private string GetZonesJson()
         {
-            return
-                @"{""domain"":[" +
-                string.Join(
-                    ",",
-                    this._Zones.Select(z => string.Format(@"{{""id"":""{0}"",""name"":""{1}""}}", z.Id, z.Name))
-                ) + "]}";
+            if (!this._Zones.Any())
+                return "[]";
+            else
+                return
+                    @"{""domain"":[" +
+                    string.Join(
+                        ",",
+                        this._Zones.Select(z => string.Format(@"{{""id"":""{0}"",""name"":""{1}""}}", z.Id, z.Name))
+                    ) + "]}";
         }
 
         public string ProcCreateZone(Match pathInfo, Data data)
@@ -134,8 +138,9 @@ namespace DozensAPI.Test
             data.name.IsNotNull();
             data.name.IsNot("");
 
-            var nextZoneId = _Zones.Max(z => z.Id) + 1;
-            _Zones.Insert(0, new DozensZone { Id = 0, Name = data.name });
+            var nextZoneId = _Zones.DefaultIfEmpty(new DozensZone { Id = 0 }).Max(z => z.Id) + 1;
+            _Zones.Insert(0, new DozensZone { Id = nextZoneId, Name = data.name });
+            _Records.Add(nextZoneId, new List<DozensRecord>());
 
             return GetZonesJson();
         }
@@ -147,6 +152,7 @@ namespace DozensAPI.Test
             var zoneId = int.Parse(pathInfo.Groups["zoneId"].Value);
             var target = _Zones.Single(z => z.Id == zoneId);
             _Zones.Remove(target);
+            _Records.Remove(target.Id);
 
             return GetZonesJson();
         }
@@ -169,8 +175,12 @@ namespace DozensAPI.Test
                     r.Id,
                     r.Name == "" ? zone.Name : r.Name + "." + zone.Name,
                     r.Type, r.Prio, r.Content, r.TTL)
-                );
-            return @"{""record"":[" + string.Join(",", records) + "]}";
+                )
+                .ToArray();
+            if (!records.Any())
+                return "[]";
+            else
+                return @"{""record"":[" + string.Join(",", records) + "]}";
         }
 
         public string ProcUpdateRecord(Match pathInfo, Data data)

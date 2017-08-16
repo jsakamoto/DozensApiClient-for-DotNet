@@ -64,6 +64,19 @@ namespace DozensAPI.Test
             VerifyInitialZonez(target);
         }
 
+        [Fact]
+        public void GetZonesWithEmptyTest()
+        {
+            var target = this.CreateTarget();
+            target.DeleteZone("jsakamoto.info");
+            var zones = target.GetZones();
+            zones.Length.Is(0);
+
+            // 原状復旧
+            target.CreateZone("jsakamoto.info");
+            target.CreateRecord("jsakamoto.info", "www", "A", 0, "192.168.0.101");
+        }
+
         public void VerifyInitialZonez(Dozens target)
         {
             var zones = target
@@ -114,6 +127,18 @@ namespace DozensAPI.Test
         {
             var target = this.CreateTarget();
             VerifyInitialRecords(target);
+        }
+
+        [Fact]
+        public void GetRecordsWithEmptyTest()
+        {
+            var target = this.CreateTarget();
+            target.DeleteRecord("jsakamoto.info", "www");
+            var records = target.GetRecords("jsakamoto.info");
+            records.Length.Is(0);
+
+            // 原状復帰
+            target.CreateRecord("jsakamoto.info", "www", "A", 0, "192.168.0.101");
         }
 
         public void VerifyInitialRecords(Dozens target)
