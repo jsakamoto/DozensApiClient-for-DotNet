@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -7,12 +6,17 @@ namespace DozensAPI
 {
     internal class WebException : Exception
     {
-        internal interface IHttpResponse
+        internal class WebExceptionResponse
         {
-            Stream GetResponseStream();
+            internal Func<Stream> GetResponseStream { get; set; }
         }
 
-        public IHttpResponse Response { get; set; }
+        internal WebExceptionResponse Response { get; }
 
+        internal WebException(string message, string content) : base(message)
+        {
+            var memStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+            this.Response = new WebExceptionResponse { GetResponseStream = () => memStream };
+        }
     }
 }

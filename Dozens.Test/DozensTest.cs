@@ -311,5 +311,18 @@ namespace DozensAPI.Test
                     @"{Id = \d+, Name = pop3\.jsakamoto\.info, Type = CNAME, Content = imap4\.jsakamoto\.info, Prio = 10, TTL = 7200}"
                 }, RegexIsMatch);
         }
+
+        [Fact]
+        public void CreateZoneByInvalidFormatTest()
+        {
+            var target = this.CreateTarget();
+            var e = Assert.Throws<DozensException>(() =>
+            {
+                target.CreateZone("/bad.domain*,name");
+            });
+            e.Code.Is(400 /* Bad request */);
+            e.Message.Is("There are some incorrect value.(400)");
+            e.Detail.Name.Is("ドメイン名は正しい形式で入力してください。");
+        }
     }
 }

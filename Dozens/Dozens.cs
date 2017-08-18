@@ -103,7 +103,10 @@ namespace DozensAPI
         internal class ErrorResult
         {
             public int Code { get; set; }
-            public string Message { get; set; }
+
+            public string Message { get; set; } = "";
+
+            public DozensExceptionDetail Detail { get; set; } = new DozensExceptionDetail();
         }
 
         /// <summary>
@@ -146,7 +149,7 @@ namespace DozensAPI
                         var errResult = string.IsNullOrEmpty(body) ?
                             new ErrorResult() :
                             this._Serializer.Deserialize<ErrorResult>(body);
-                        throw new DozensException(errResult.Code, errResult.Message, e);
+                        throw new DozensException(errResult.Code, errResult.Message, errResult.Detail, e);
                     }
                 }
             }

@@ -37,9 +37,7 @@ namespace DozensAPI
             request.Content.Headers.Clear();
             request.Content.Headers.Add("Content-Type", contentType);
 
-            SetupDefaultRequestHeaders();
-            var res = this.HttpClient.SendAsync(request).Result;
-            return res.Content.ReadAsStringAsync().Result;
+            return SendRequestAndGetContents(request);
         }
 
 
@@ -53,9 +51,16 @@ namespace DozensAPI
         public string DownloadString(string address)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, address);
+            return SendRequestAndGetContents(request);
+        }
+
+        private string SendRequestAndGetContents(HttpRequestMessage request)
+        {
             SetupDefaultRequestHeaders();
             var res = this.HttpClient.SendAsync(request).Result;
-            return res.Content.ReadAsStringAsync().Result;
+            var responseContent = res.Content.ReadAsStringAsync().Result;
+            if (!res.IsSuccessStatusCode) throw new WebException(res.ReasonPhrase, responseContent);
+            return responseContent;
         }
 
         /// <summary>
