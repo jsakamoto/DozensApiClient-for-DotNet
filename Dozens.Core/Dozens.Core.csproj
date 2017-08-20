@@ -16,11 +16,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netstandard1.4\Dozens.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netstandard1.6\Dozens.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netstandard1.4\Dozens.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netstandard1.6\Dozens.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
