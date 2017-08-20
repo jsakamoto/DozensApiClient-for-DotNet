@@ -1,0 +1,16 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+before_build:
+- cmd: nuget restore
+build:
+  verbosity: minimal
+test_script:
+- cmd: >-
+    cd Dozens.Core.Test
+
+    dotnet test
+
+
+    cd ..\Dozens.Test\bin\Debug
+
+    vstest.console /logger:Appveyor Dozens.Test.dll
