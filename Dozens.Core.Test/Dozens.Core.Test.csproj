@@ -9,7 +9,7 @@
     <Compile Include="..\Dozens.Test\AppSettings.cs" Link="AppSettings.cs" />
     <Compile Include="..\Dozens.Test\DozensTest.cs" Link="DozensTest.cs" />
     <Compile Include="..\Dozens.Test\Dozens_TestAdaptor.cs" Link="Dozens_TestAdaptor.cs" />
-    <Compile Include="..\Dozens.Test\MockEndPoint.cs" Link="MockEndPoint.cs" />
+    <Compile Include="..\Dozens.Test\MockServer\MockDozensApiServer.cs" Link="MockServer\MockDozensApiServer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="ChainingAssertion-xUnit.Bin" Version="1.7.4" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="1.1.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
     <PackageReference Include="xunit" Version="2.2.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0-beta4-build3742" />

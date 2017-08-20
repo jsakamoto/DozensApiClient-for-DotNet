@@ -2,38 +2,45 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using DozensAPI.Test.MockServer;
 using Xunit;
 
 namespace DozensAPI.Test
 {
-    public class DozensTest
+    public class DozensTest : IDisposable
     {
         private AppSettings AppSettings { get; set; }
+
+        private MockDozensApiServer MockDozensApiServer { get; set; }
 
         public DozensTest()
         {
             this.AppSettings = AppSettings.Load();
+            this.MockDozensApiServer = new MockDozensApiServer();
+            this.MockDozensApiServer.Start();
         }
 
-        Dozens CreateTarget()
+        public void Dispose()
+        {
+            this.MockDozensApiServer.Dispose();
+        }
+
+        private Dozens CreateTarget()
         {
             var target = new Dozens_TestAdaptor(this.AppSettings.DozensId, this.AppSettings.APIKey);
-            ModAPIEndPointIfUseMock(target);
+            SetBaseUrlIfUseMock(target);
             return target;
         }
 
-        private void ModAPIEndPointIfUseMock(Dozens_TestAdaptor target)
+        private void SetBaseUrlIfUseMock(Dozens_TestAdaptor target)
         {
             if (this.AppSettings.UseMock)
             {
-                target.SetAPIEndPoint(new MockEndPoint());
+                target.BaseURL = $"{this.MockDozensApiServer.Url}/api";
             }
         }
 
-        static bool RegexIsMatch(string expectedPattern, string actual)
-        {
-            return Regex.IsMatch(expectedPattern, actual);
-        }
+        static bool RegexIsMatch(string expectedPattern, string actual) => Regex.IsMatch(expectedPattern, actual);
 
         [Fact]
         public void AuthTest()
@@ -49,7 +56,7 @@ namespace DozensAPI.Test
         public void Auth2Test()
         {
             var target = new Dozens_TestAdaptor();
-            ModAPIEndPointIfUseMock(target);
+            SetBaseUrlIfUseMock(target);
             target.Token.IsNull();
 
             target.Auth(this.AppSettings.DozensId, this.AppSettings.APIKey);

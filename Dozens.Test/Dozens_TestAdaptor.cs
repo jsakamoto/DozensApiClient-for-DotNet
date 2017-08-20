@@ -14,11 +14,6 @@ namespace DozensAPI.Test
         {
         }
 
-        public void SetAPIEndPoint(IAPIEndPoint apiEndPoint)
-        {
-            this.APIEndPoint = apiEndPoint;
-        }
-
         public new void Auth()
         {
             base.Auth();
