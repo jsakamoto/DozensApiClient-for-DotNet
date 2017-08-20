@@ -16,8 +16,20 @@
     <projectUrl>https://github.com/jsakamoto/DozensApiClient-for-DotNet/</projectUrl>
     <tags>DNS Dozens</tags>
     <iconUrl>http://nuget.org/Media/Default/Packages/DozensAPIClient/1.0.0/doz_bigger.png</iconUrl>
+    <dependencies>
+      <group targetFramework=".NETFramework3.5" />
+      <group targetFramework=".NETFramework4.5" />
+      <group targetFramework="uap" />
+      <group targetFramework=".NETStandard1.6">
+        <dependency id="NETStandard.Library" version="1.6.0" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="10.0.3.0" />
+      </group>
+    </dependencies>
   </metadata>
   <files>
+    <file src="bin\Release\Dozens.dll" target="lib/net35"/>
     <file src="bin\Release\Dozens.xml" target="lib/net35"/>
+    <file src="..\Dozens.Core\bin\Release\netstandard1.6\Dozens.dll" target="lib\netstandard1.6"/>
+    <file src="..\Dozens.Core\bin\Release\netstandard1.6\Dozens.xml" target="lib\netstandard1.6"/>
   </files>
 </package>

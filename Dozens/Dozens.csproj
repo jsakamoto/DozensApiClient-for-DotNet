@@ -33,7 +33,7 @@
     <DocumentationFile>bin\Release\Dozens.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -53,6 +53,7 @@
     <Compile Include="DozensRecord.cs" />
     <Compile Include="DozensZone.cs" />
     <Compile Include="IAPIEndPoint.cs" />
+    <Compile Include="Internal\JavaScriptSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -65,7 +66,16 @@
   <PropertyGroup>
     <PostBuildEvent>if not "$(ConfigurationName)" == "Release" goto END
 pushd "$(ProjectDir)"
-"$(SolutionDir).nuget\nuget.exe" pack "$(ProjectName).csproj" -o $(OutDir)
+
+"%25SystemRoot%25\system32\find" "AssemblyVersion" &lt; Properties\AssemblyInfo.cs &gt; ~version.txt
+set /p ver= &lt; ~version.txt
+del ~version.txt
+
+"%25SystemRoot%25\system32\find" "AssemblyTitle" &lt; Properties\AssemblyInfo.cs &gt; ~title.txt
+set /p title= &lt; ~title.txt
+del ~title.txt
+
+"$(SolutionDir).nuget\nuget.exe" pack "$(ProjectName).nuspec" -Prop version=%25ver:~28,-3%25 -Prop title="%25title:~26,-3%25" -o $(OutDir)
 :END
 </PostBuildEvent>
   </PropertyGroup>

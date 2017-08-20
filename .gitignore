@@ -4,3 +4,4 @@ obj/
 packages/
 *.user
 *.suo
+application.user.json
