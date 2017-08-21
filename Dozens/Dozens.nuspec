@@ -9,7 +9,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
       This library provide you to easily access way to API of "Dozens" DNS service (ex.Create/Get/Udate/Edit DNS zones or records).
-      クラウド時代に対応したDNSサービス "Dozens"(http://dozens.jp) の REST API にアクセスして、ゾーン又はレコードの追加/取得/変更/削除を行うことのできる、.NET 言語用のクラスライブラリです。
+      クラウド時代に対応したDNSサービス "Dozens"(https://dozens.jp) の REST API にアクセスして、ゾーン又はレコードの追加/取得/変更/削除を行うことのできる、.NET 言語用のクラスライブラリです。
     </description>
     <language>ja-JP</language>
     <licenseUrl>https://github.com/jsakamoto/DozensApiClient-for-DotNet/blob/master/LICENSE</licenseUrl>
@@ -25,6 +25,24 @@
         <dependency id="Newtonsoft.Json" version="10.0.3.0" />
       </group>
     </dependencies>
+    <releaseNotes>
+      <![CDATA[
+      v.1.1.2
+      - Dozens API のアクセスプロトコルを http から https に変更
+      - Auth メソッドで認証失敗時、DozensException 例外が発射されず、生の WebException が発射される不具合を修正
+      v.1.1.1
+      - .NET Core 1.1 に対応
+      - ゾーンまたはレコード取得が0件のときに例外発生する不具合を修正
+      v.1.1.0.1
+      - CodePlex から GitHub への引き揚げに伴い、NuGet パッケージ中のプロジェクトサイト URL などを更新
+      - ライセンスを Mｓ-PL から Mozilla Public License Version 2.0 に変更
+      v.1.1.0
+      - VBScript など WSH 環境からも呼び出せるよう、COM 相互運用の属性を追加、署名
+      - PowerShell 2.0 で使えるよう対象フレームワークを .NET4 から .NET3.5 に格下げ
+      v.1.0.0
+      - 1st Release
+      ]]>
+    </releaseNotes>
   </metadata>
   <files>
     <file src="bin\Release\Dozens.dll" target="lib/net35"/>
