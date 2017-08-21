@@ -64,6 +64,22 @@ namespace DozensAPI.Test
         }
 
         [Fact]
+        public void AuthFailTest()
+        {
+            var target = new Dozens_TestAdaptor();
+            SetBaseUrlIfUseMock(target);
+            target.Token.IsNull();
+
+            var e = Assert.ThrowsAny<DozensException>(() =>
+            {
+                target.Auth(this.AppSettings.DozensId, "a5c4689dc34a4ac08e49817993ed3f54"/* Invalid API key */);
+            });
+            e.Code.Is(400);
+            e.Message.Is("Authentication failed(400)");
+            target.Token.IsNull();
+        }
+
+        [Fact]
         public void GetZonesTest()
         {
             var target = this.CreateTarget();

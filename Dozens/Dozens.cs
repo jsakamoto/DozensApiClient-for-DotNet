@@ -71,15 +71,22 @@ namespace DozensAPI
 
         protected void Auth()
         {
-            lock (this.APIEndPoint)
+            try
             {
-                this.Token = null;
+                lock (this.APIEndPoint)
+                {
+                    this.Token = null;
 
-                var apiEndPoint = GetAPIEndPoint();
-                var resultJson = apiEndPoint.DownloadString(this.BaseURL + "/authorize.json");
-                var result = this._Serializer.Deserialize<AuthResult>(resultJson);
+                    var apiEndPoint = GetAPIEndPoint();
+                    var resultJson = apiEndPoint.DownloadString(this.BaseURL + "/authorize.json");
+                    var result = this._Serializer.Deserialize<AuthResult>(resultJson);
 
-                this.Token = result.auth_token;
+                    this.Token = result.auth_token;
+                }
+            }
+            catch (WebException e)
+            {
+                throw ConvertToDozensException(e);
             }
         }
 
@@ -143,15 +150,20 @@ namespace DozensAPI
                 }
                 catch (WebException e)
                 {
-                    using (var responseBody = new StreamReader(e.Response.GetResponseStream()))
-                    {
-                        var body = responseBody.ReadToEnd();
-                        var errResult = string.IsNullOrEmpty(body) ?
-                            new ErrorResult() :
-                            this._Serializer.Deserialize<ErrorResult>(body);
-                        throw new DozensException(errResult.Code, errResult.Message, errResult.Detail, e);
-                    }
+                    throw ConvertToDozensException(e);
                 }
+            }
+        }
+
+        private DozensException ConvertToDozensException(WebException e)
+        {
+            using (var responseBody = new StreamReader(e.Response.GetResponseStream()))
+            {
+                var body = responseBody.ReadToEnd();
+                var errResult = string.IsNullOrEmpty(body) ?
+                    new ErrorResult() :
+                    this._Serializer.Deserialize<ErrorResult>(body);
+                return new DozensException(errResult.Code, errResult.Message, errResult.Detail, e);
             }
         }
 

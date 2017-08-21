@@ -20,9 +20,13 @@ namespace DozensAPI.Test.MockServer
         public IActionResult Authentication()
         {
             var headers = this.Request.Headers;
-            headers["X-Auth-User"].Is("jsakamoto");
-            headers["X-Auth-Key"].Is("a8753098B73131kewt987612004957d89");
-            return Content(@"{""auth_token"":""6cfb3debbbac7d144e9eb7b701f79c2225bd6646""}", "application/json");
+            if (
+                headers["X-Auth-User"] == "jsakamoto" &&
+                headers["X-Auth-Key"] == "a8753098B73131kewt987612004957d89")
+            {
+                return Content(@"{""auth_token"":""6cfb3debbbac7d144e9eb7b701f79c2225bd6646""}", "application/json");
+            }
+            return StatusCode(400, new { code = 400, message = "Authentication failed" });
         }
 
         private void ValidateCommonHeaders()
