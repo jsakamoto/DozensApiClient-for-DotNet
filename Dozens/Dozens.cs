@@ -30,7 +30,7 @@ namespace DozensAPI
         public string Token { get; set; }
 
         /// <summary>
-        /// Dozens REST API の URL を取得または設定します。既定では "http://dozens.jp/api" に初期化されます。
+        /// Dozens REST API の URL を取得または設定します。既定では "https://dozens.jp/api" に初期化されます。
         /// </summary>
         public string BaseURL { get; set; }
 
@@ -58,7 +58,7 @@ namespace DozensAPI
 
         private void Initialize()
         {
-            this.BaseURL = "http://dozens.jp/api";
+            this.BaseURL = "https://dozens.jp/api";
             this._Serializer = new JavaScriptSerializer();
             this.APIEndPoint = new DefaultAPIEndPoint();
         }
